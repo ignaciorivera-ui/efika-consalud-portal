@@ -1,0 +1,39 @@
+name: Sync SharePoint → Portal Consalud
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'   # cada 2 horas automáticamente
+  workflow_dispatch:          # también se puede lanzar manualmente en GitHub
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: pip install requests openpyxl
+
+      - name: Descargar Excel y generar data.js
+        env:
+          AZURE_TENANT_ID:     ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID:     ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        run: python sync_data.py
+
+      - name: Commit y push si hubo cambios
+        run: |
+          git config user.name  "EFIKA Bot"
+          git config user.email "bot@efika.cl"
+          git add data.js
+          git diff --staged --quiet || git commit -m "Auto-sync $(date '+%d/%m/%Y %H:%M') UTC"
+          git push

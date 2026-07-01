@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EFIKA | Portal Consalud</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="data.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#04111A;--teal:#005F6E;--teal2:#007A8C;--teal3:#00B4CC;
+  --card:#071F2B;--card2:#0A2A38;--gold:#F5C23E;--gold2:#FFD96B;
+  --blue:#2196F3;--blue2:#42A5F5;--green:#10B981;--red:#EF4444;
+  --t1:rgba(255,255,255,0.88);--t2:rgba(255,255,255,0.50);--t3:rgba(255,255,255,0.22);
+  --border:rgba(255,255,255,0.07);--border2:rgba(0,180,204,0.22);
+  --sw:220px;--hh:56px;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:#fff;overflow:hidden;height:100vh}
+
+/* ── LOGIN ─────────────────────────────────────────────────────────────── */
+#loginScreen{
+  position:fixed;inset:0;z-index:999;
+  background:linear-gradient(135deg,#030A0F 0%,#011C2A 40%,#003444 70%,#004655 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+.lg-glow{position:absolute;width:700px;height:700px;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(0,180,204,0.10) 0%,transparent 70%);pointer-events:none}
+.lg-card{
+  background:rgba(5,22,32,0.88);backdrop-filter:blur(28px);
+  border:1px solid rgba(0,180,204,0.18);border-radius:22px;
+  padding:44px 48px 40px;width:430px;
+  box-shadow:0 32px 80px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.06);
+  position:relative;z-index:1;
+}
+.lg-logos{display:flex;align-items:center;justify-content:space-between;margin-bottom:30px}
+.lg-efika{display:flex;align-items:center;gap:9px}
+.efk-ic{width:38px;height:38px;background:var(--gold);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#000;letter-spacing:-1px}
+.efk-nm{font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px}
+.lg-cs{display:flex;align-items:center;gap:7px}
+.cs-ic{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#007A8C,#00C5D8);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff}
+.cs-nm{font-size:13px;font-weight:700;color:var(--teal3)}
+.lg-sep{width:1px;height:34px;background:var(--border)}
+.lg-h{font-size:22px;font-weight:800;margin-bottom:4px}
+.lg-s{font-size:12px;color:var(--t2);margin-bottom:26px;line-height:1.55}
+.lg-lbl{display:block;font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.9px;margin-bottom:6px}
+.lg-inp{
+  width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  border-radius:10px;padding:12px 14px;font-size:14px;color:#fff;
+  outline:none;transition:.2s;font-family:inherit;margin-bottom:14px;
+}
+.lg-inp:focus{border-color:var(--teal3);background:rgba(0,180,204,0.07);box-shadow:0 0 0 3px rgba(0,180,204,0.12)}
+.lg-inp::placeholder{color:var(--t3)}
+.lg-btn{
+  width:100%;padding:13px;margin-top:4px;
+  background:linear-gradient(135deg,#006E80,#00B4CC);
+  border:none;border-radius:10px;cursor:pointer;
+  font-size:14px;font-weight:700;color:#fff;letter-spacing:.3px;
+  transition:.2s;box-shadow:0 4px 18px rgba(0,180,204,0.28);font-family:inherit;
+}
+.lg-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,180,204,0.38)}
+.lg-err{
+  background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.28);
+  border-radius:8px;padding:9px 14px;font-size:12px;color:#FCA5A5;
+  margin-top:10px;display:none;text-align:center;
+}
+.lg-foot{margin-top:22px;text-align:center;font-size:11px;color:var(--t3)}
+
+/* ── APP ──────────────────────────────────────────────────────────────── */
+#app{display:none;height:100vh;flex-direction:column}
+#app.on{display:flex}
+
+/* HEADER */
+.hdr{
+  height:var(--hh);flex-shrink:0;
+  background:linear-gradient(90deg,#003244,#004A5A);
+  border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;padding:0 18px;gap:12px;
+  box-shadow:0 2px 18px rgba(0,0,0,.32);z-index:100;
+}
+.hdr-menu{background:none;border:none;cursor:pointer;color:var(--t2);font-size:18px;padding:4px 6px;border-radius:6px;transition:.15s}
+.hdr-menu:hover{background:var(--border);color:#fff}
+.hdr-cs{display:flex;align-items:center;gap:7px}
+.hdr-cs-ic{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#007A8C,#00C5D8);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff}
+.hdr-cs-nm{font-size:13px;font-weight:700;color:#fff}
+.hdr-div{width:1px;height:20px;background:var(--border)}
+.hdr-title{font-size:13px;font-weight:600;color:var(--t1);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.efk-badge{background:rgba(245,194,62,0.13);border:1px solid rgba(245,194,62,0.28);border-radius:7px;padding:4px 10px;display:flex;align-items:center;gap:6px}
+.efk-b-ic{width:19px;height:19px;background:var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;color:#000}
+.efk-b-tx{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.5px}
+.hdr-user{display:flex;align-items:center;gap:7px;background:var(--border);border-radius:8px;padding:5px 10px}
+.hdr-av{width:24px;height:24px;border-radius:50%;background:var(--teal2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.hdr-un{font-size:11px;font-weight:600;color:var(--t1)}
+.hdr-upd{font-size:10px;color:var(--t3)}
+.hdr-out{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#FCA5A5;border-radius:7px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit}
+.hdr-out:hover{background:rgba(239,68,68,0.18)}
+
+/* BODY */
+.body{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sb{
+  width:var(--sw);flex-shrink:0;overflow:hidden;
+  background:linear-gradient(180deg,#002F3E 0%,#001F2A 100%);
+  border-right:1px solid var(--border2);
+  display:flex;flex-direction:column;transition:width .22s ease;
+}
+.sb.cl{width:54px}
+.sb-sec{padding:14px 7px;flex:1;display:flex;flex-direction:column;gap:2px}
+.ni{
+  display:flex;align-items:center;gap:9px;padding:8px 9px;
+  border-radius:10px;cursor:pointer;transition:.14s;
+  border:1px solid transparent;white-space:nowrap;overflow:hidden;
+}
+.ni:hover{background:rgba(0,180,204,0.09);border-color:rgba(0,180,204,0.14)}
+.ni.ac{background:rgba(0,180,204,0.14);border-color:rgba(0,180,204,0.28)}
+.ni-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;background:rgba(255,255,255,0.05)}
+.ni.ac .ni-ic{background:rgba(0,180,204,0.18)}
+.ni-lb{font-size:11px;font-weight:600;color:var(--t2);transition:.14s}
+.ni:hover .ni-lb,.ni.ac .ni-lb{color:#fff}
+.ni.ac .ni-lb{color:var(--teal3)}
+.ni-am{margin-left:auto;font-size:10px;font-weight:700;color:var(--gold);white-space:nowrap}
+.sb.cl .ni-lb,.sb.cl .ni-am{display:none}
+.sb-ft{padding:10px 7px;border-top:1px solid var(--border)}
+.sb-upd{font-size:10px;color:var(--t3);padding:0 9px}
+.sb.cl .sb-upd{display:none}
+
+/* MAIN */
+.mc{flex:1;overflow-y:auto;background:var(--bg)}
+.pg{display:none;padding:18px 20px;min-height:100%}
+.pg.ac{display:block;animation:fadeUp .28s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
+
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#003C4E,#005A6E);
+  border:1px solid rgba(0,180,204,0.28);border-radius:16px;
+  padding:22px 26px;display:flex;align-items:center;gap:28px;
+  margin-bottom:14px;box-shadow:0 4px 28px rgba(0,50,70,.35);
+}
+.hero-m{flex:1}
+.hero-tg{font-size:10px;font-weight:700;color:var(--teal3);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:5px}
+.hero-am{font-size:38px;font-weight:900;color:var(--gold);letter-spacing:-1.5px;line-height:1}
+.hero-sb{font-size:11px;color:var(--t2);margin-top:5px}
+.hero-sb span{color:var(--teal3);font-weight:600}
+.hero-sts{display:flex;gap:16px}
+.hst{text-align:center;padding:12px 16px;background:rgba(0,0,0,.18);border-radius:11px;border:1px solid rgba(255,255,255,.05);min-width:100px}
+.hst-n{font-size:20px;font-weight:800}
+.hst-n.gd{color:var(--gold)}.hst-n.tl{color:var(--teal3)}
+.hst-l{font-size:9px;color:var(--t2);margin-top:2px;text-transform:uppercase;letter-spacing:.3px;line-height:1.3}
+
+/* GRIDS */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.row{display:flex;gap:12px;margin-bottom:14px;align-items:stretch}
+
+/* KPI CARD */
+.kp{
+  background:linear-gradient(135deg,var(--card2),var(--card));
+  border:1px solid var(--border);border-radius:13px;
+  padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s;
+}
+.kp:hover{border-color:var(--border2)}
+.kp::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:13px 13px 0 0}
+.kp.kt::before{background:linear-gradient(90deg,#006E80,#00C5D8)}
+.kp.kg::before{background:linear-gradient(90deg,#B07C10,#F5C23E)}
+.kp.kb::before{background:linear-gradient(90deg,#1255A0,#42A5F5)}
+.kp.kgr::before{background:linear-gradient(90deg,#065F46,#10B981)}
+.kp-ic{font-size:20px;margin-bottom:7px;opacity:.8}
+.kp-v{font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1}
+.kp-v.big{font-size:28px;color:var(--gold)}
+.kp-v.tl{color:var(--teal3)}.kp-v.bl{color:var(--blue2)}.kp-v.gd{color:var(--gold)}.kp-v.gr{color:var(--green)}
+.kp-lb{font-size:10px;color:var(--t2);margin-top:4px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+
+/* CONTRACT ROW */
+.cr{display:flex;gap:10px;margin-bottom:14px}
+.ck{
+  flex:1;background:linear-gradient(135deg,rgba(0,110,128,.18),rgba(0,55,72,.28));
+  border:1px solid rgba(0,180,204,.18);border-radius:12px;padding:13px 15px;
+}
+.ck-top{font-size:9px;color:var(--teal3);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px}
+.ck-v{font-size:15px;font-weight:800;color:var(--gold)}
+.ck-v.tl{color:var(--teal3)}
+.ck-s{font-size:9px;color:var(--t3);margin-top:2px}
+
+/* CHART CARD */
+.cc{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px 18px;flex:1}
+.cc h3{font-size:12px;font-weight:700;margin-bottom:2px}
+.cc .sub{font-size:10px;color:var(--t2);margin-bottom:12px}
+.cw{position:relative}.cw.h200{height:200px}.cw.h190{height:190px}.cw.h170{height:170px}
+
+/* GAUGE */
+.gw{display:flex;flex-direction:column;align-items:center;padding:6px 0}
+.gw canvas{width:170px!important;height:95px!important}
+.g-pct{font-size:26px;font-weight:900;color:var(--blue2);margin-top:-6px;letter-spacing:-.5px}
+.g-lb{font-size:9px;color:var(--t2);text-align:center;margin-top:2px;text-transform:uppercase;letter-spacing:.4px}
+.g-rng{display:flex;justify-content:space-between;width:150px;font-size:9px;color:var(--t3);margin-top:3px}
+
+/* KPI PAIR */
+.kpp{display:flex;flex-direction:column;gap:10px;flex:1;min-width:140px}
+.km{background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:13px 14px;flex:1}
+.km .v{font-size:16px;font-weight:800;color:var(--gold);letter-spacing:-.3px}
+.km .l{font-size:9px;color:var(--t2);margin-top:3px;text-transform:uppercase;letter-spacing:.4px}
+.km.bl .v{color:var(--blue2)}.km.tl .v{color:var(--teal3)}.km.gr .v{color:var(--green)}
+
+/* TABLE */
+.tc{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden}
+.th{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.th h3{font-size:11px;font-weight:700}
+.th .ba{background:rgba(0,180,204,.1);border:1px solid rgba(0,180,204,.2);border-radius:20px;padding:2px 9px;font-size:9px;font-weight:600;color:var(--teal3)}
+table{width:100%;border-collapse:collapse;font-size:11px}
+thead th{background:rgba(255,255,255,.03);padding:8px 12px;text-align:left;color:var(--t2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;font-size:9px;border-bottom:1px solid var(--border)}
+thead th:last-child{text-align:right}
+tbody td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.025);color:var(--t1)}
+tbody tr:hover td{background:rgba(255,255,255,.015)}
+tbody tr:last-child td{border-bottom:none}
+.tr{text-align:right;font-weight:700;color:var(--gold)}
+.tbl{color:var(--blue2)!important;font-weight:600}
+.tgr{color:var(--green)!important}
+
+/* PAGE HEADER */
+.ph{margin-bottom:16px}
+.ph h2{font-size:18px;font-weight:800}
+.ph p{font-size:10px;color:var(--t2);margin-top:2px}
+</style>
+</head>
+<body>
+
+<!-- ═══════ LOGIN ═══════ -->
+<div id="loginScreen">
+  <div class="lg-glow"></div>
+  <div class="lg-card">
+    <div class="lg-logos">
+      <div class="lg-efika"><div class="efk-ic">EF</div><span class="efk-nm">EFIKA</span></div>
+      <div class="lg-sep"></div>
+      <div class="lg-cs"><div class="cs-ic">C+</div><span class="cs-nm">CONSALUD</span></div>
+    </div>
+    <div class="lg-h">Portal de Gestión TIC</div>
+    <div class="lg-s">Reporte de Consultoría de Eficiencia · Acceso autorizado</div>
+    <label class="lg-lbl">Usuario</label>
+    <input id="lu" class="lg-inp" type="text" placeholder="tu.usuario" autocomplete="username">
+    <label class="lg-lbl">Contraseña</label>
+    <input id="lp" class="lg-inp" type="password" placeholder="••••••••" autocomplete="current-password">
+    <button class="lg-btn" onclick="doLogin()">Ingresar →</button>
+    <div id="lerr" class="lg-err">Usuario o contraseña incorrectos.</div>
+    <div class="lg-foot">Portal protegido · EFIKA Consulting · <span id="lgUpd"></span></div>
+  </div>
+</div>
+
+<!-- ═══════ APP ═══════ -->
+<div id="app">
+  <header class="hdr">
+    <button class="hdr-menu" onclick="toggleSB()">☰</button>
+    <div class="hdr-cs"><div class="hdr-cs-ic">C+</div><span class="hdr-cs-nm">CONSALUD</span></div>
+    <div class="hdr-div"></div>
+    <span class="hdr-title">Reporte de Servicios — Consultoría de Eficiencia TIC</span>
+    <div class="hdr-r">
+      <span class="hdr-upd" id="hdrUpd"></span>
+      <div class="efk-badge"><div class="efk-b-ic">EF</div><span class="efk-b-tx">EFIKA</span></div>
+      <div class="hdr-user"><div class="hdr-av" id="hdrAv">C</div><span class="hdr-un" id="hdrUn">Consalud</span></div>
+      <button class="hdr-out" onclick="doLogout()">Salir</button>
+    </div>
+  </header>
+  <div class="body">
+    <aside class="sb" id="sb">
+      <div class="sb-sec">
+        <div class="ni ac" onclick="goPage('main',this)"><div class="ni-ic">📊</div><span class="ni-lb">Consalud</span></div>
+        <div class="ni" onclick="goPage('pv',this)"><div class="ni-ic">🔒</div><span class="ni-lb">Servicios Privados</span><span class="ni-am">$734M</span></div>
+        <div class="ni" onclick="goPage('mv',this)"><div class="ni-ic">📱</div><span class="ni-lb">Servicios Móviles</span><span class="ni-am">$174M</span></div>
+        <div class="ni" onclick="goPage('sms',this)"><div class="ni-ic">💬</div><span class="ni-lb">Servicios SMS</span><span class="ni-am">$112M</span></div>
+        <div class="ni" onclick="goPage('fj',this)"><div class="ni-ic">📞</div><span class="ni-lb">Telefonía Fija</span><span class="ni-am">$49M</span></div>
+        <div class="ni" onclick="goPage('ot',this)"><div class="ni-ic">⚙️</div><span class="ni-lb">Otras Negociaciones</span><span class="ni-am">$208M</span></div>
+      </div>
+      <div class="sb-ft"><div class="sb-upd" id="sbUpd"></div></div>
+    </aside>
+
+    <main class="mc">
+
+      <!-- CONSALUD GENERAL -->
+      <div class="pg ac" id="pg-main">
+        <div class="hero">
+          <div class="hero-m">
+            <div class="hero-tg">Total Ahorrado · Consultoría EFIKA</div>
+            <div class="hero-am" id="h-total">$1.234.112.357</div>
+            <div class="hero-sb">Gestión continua desde <span id="h-inicio">Junio 2022</span> · <span id="h-meses">47</span> meses de operación</div>
+          </div>
+          <div class="hero-sts">
+            <div class="hst"><div class="hst-n gd" id="h-prom">41,03%</div><div class="hst-l">Promedio mensual<br>de ahorros</div></div>
+            <div class="hst"><div class="hst-n tl" id="h-ini2">Jun 2022</div><div class="hst-l">Inicio de<br>consultoría</div></div>
+            <div class="hst"><div class="hst-n" id="h-fact">1.700+</div><div class="hst-l">Facturas<br>gestionadas</div></div>
+          </div>
+        </div>
+        <div class="g4">
+          <div class="kp kg"><div class="kp-ic">🔒</div><div class="kp-v">$646M</div><div class="kp-lb">Ahorro S. Privado</div></div>
+          <div class="kp kb"><div class="kp-ic">📱</div><div class="kp-v">$166M</div><div class="kp-lb">Ahorro S. Móvil</div></div>
+          <div class="kp kt"><div class="kp-ic">📞</div><div class="kp-v">$80M</div><div class="kp-lb">Ahorro T. Fija</div></div>
+          <div class="kp kgr"><div class="kp-ic">💬</div><div class="kp-v">$132M</div><div class="kp-lb">Ahorro S. SMS</div></div>
+        </div>
+        <div class="g4">
+          <div class="kp kt"><div class="kp-ic">📦</div><div class="kp-v">$16,9M</div><div class="kp-lb">Ahorro Total Pack</div></div>
+          <div class="kp kg"><div class="kp-ic">💻</div><div class="kp-v">$132M</div><div class="kp-lb">Ahorro Microsoft</div></div>
+          <div class="kp kb"><div class="kp-ic">🏥</div><div class="kp-v">$59,9M</div><div class="kp-lb">Seguridad Medical</div></div>
+          <div class="kp kgr"><div class="kp-ic">🎯</div><div class="kp-v">6</div><div class="kp-lb">Categorías TIC</div></div>
+        </div>
+        <div class="cc">
+          <h3>Comportamiento Ahorro Total</h3>
+          <div class="sub">Ahorro mensual por categoría de servicio · Jun 2022 – Abr 2026 (CLP millones)</div>
+          <div class="cw h200"><canvas id="cMain"></canvas></div>
+        </div>
+      </div>
+
+      <!-- SERVICIOS PRIVADOS -->
+      <div class="pg" id="pg-pv">
+        <div class="ph"><h2>Servicios Privados</h2><p>Telecomunicaciones corporativas privadas · GTD Telecom / Telefónica / Movifonos</p></div>
+        <div class="cr">
+          <div class="ck"><div class="ck-top">Ahorro Total</div><div class="ck-v">$734.708.161</div><div class="ck-s">Acumulado gestión EFIKA</div></div>
+          <div class="ck"><div class="ck-top">Inicio Contrato</div><div class="ck-v tl">Noviembre 2022</div><div class="ck-s">Inicio vigencia</div></div>
+          <div class="ck"><div class="ck-top">Término Contrato</div><div class="ck-v tl">Octubre 2025</div><div class="ck-s">Fin vigencia</div></div>
+          <div class="ck"><div class="ck-top">N° Cuota Actual</div><div class="ck-v">36 / 36</div><div class="ck-s">Contrato completado</div></div>
+        </div>
+        <div class="row">
+          <div class="cc" style="flex:3"><h3>Comportamiento Ahorro</h3><div class="sub">Ahorro mensual S. Privados (millones CLP)</div><div class="cw h170"><canvas id="cPv"></canvas></div></div>
+          <div class="cc" style="flex:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <h3 style="align-self:flex-start;margin-bottom:8px">% Ahorro Mensual</h3>
+            <div class="gw"><canvas id="gPv" width="170" height="95"></canvas><div class="g-pct">43,97%</div><div class="g-lb">sobre línea base</div><div class="g-rng"><span>0%</span><span>100%</span></div></div>
+          </div>
+          <div class="kpp">
+            <div class="km"><div class="v">$63.512.363</div><div class="l">Línea Base</div></div>
+            <div class="km bl"><div class="v">$2.042.408.336</div><div class="l">Facturación Total</div></div>
+          </div>
+        </div>
+        <div class="cc" style="margin-bottom:12px"><h3>Comportamiento Facturación</h3><div class="sub">Facturación mensual vs Línea Base (CLP)</div><div class="cw h170"><canvas id="cPvB"></canvas></div></div>
+        <div class="tc">
+          <div class="th"><h3>Control de Facturación Mensual</h3><span class="ba">695 facturas</span></div>
+          <table><thead><tr><th>Fecha</th><th>Proveedor</th><th>N° Factura</th><th>Descripción</th><th>Monto Neto</th></tr></thead>
+          <tbody>
+            <tr><td>11/06/2026</td><td>GTD Telecom S.A.</td><td>#110030</td><td>JAT SERVICIOS COMUNICACIONES RESPALDO SCR</td><td class="tr">$18.427.950</td></tr>
+            <tr><td>01/06/2026</td><td>Telefónica Empresas</td><td>#952697</td><td>Upgrade SBC Retna</td><td class="tr">$127.885</td></tr>
+            <tr><td>01/06/2026</td><td>Telefónica Empresas</td><td>#931357</td><td>FACTURA UNIFICADA</td><td class="tr">$21.253.495</td></tr>
+            <tr><td>01/06/2026</td><td>GTD Telecom S.A.</td><td>#110044</td><td>JAT SERVICIOS COMUNICACIONES RESPALDO SCR</td><td class="tr">$490.610</td></tr>
+            <tr><td>01/06/2026</td><td>Movifonos</td><td>#13243</td><td>Servicios Comunicaciones Corporativas</td><td class="tr">$8.436.008</td></tr>
+            <tr><td>15/05/2026</td><td>Telefónica Empresas</td><td>#925140</td><td>FACTURA UNIFICADA</td><td class="tr">$20.874.320</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+
+      <!-- SERVICIOS MÓVILES -->
+      <div class="pg" id="pg-mv">
+        <div class="ph"><h2>Servicios Móviles</h2><p>Flota móvil corporativa · Entel / Telefónica / Claro</p></div>
+        <div class="cr">
+          <div class="ck"><div class="ck-top">Ahorro Total</div><div class="ck-v">$174.558.177</div><div class="ck-s">Acumulado gestión EFIKA</div></div>
+          <div class="ck"><div class="ck-top">Inicio Contrato</div><div class="ck-v tl">Noviembre 2022</div><div class="ck-s">Inicio vigencia</div></div>
+          <div class="ck"><div class="ck-top">Término Contrato</div><div class="ck-v tl">Octubre 2025</div><div class="ck-s">Fin vigencia</div></div>
+          <div class="ck"><div class="ck-top">N° Cuota Actual</div><div class="ck-v">36 / 36</div><div class="ck-s">Contrato completado</div></div>
+        </div>
+        <div class="row">
+          <div class="cc" style="flex:3"><h3>Ahorro Histórico</h3><div class="sub">Ahorro mensual S. Móviles (millones CLP)</div><div class="cw h170"><canvas id="cMv"></canvas></div></div>
+          <div class="cc" style="flex:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <h3 style="align-self:flex-start;margin-bottom:8px">% Ahorro Mensual</h3>
+            <div class="gw"><canvas id="gMv" width="170" height="95"></canvas><div class="g-pct">66,22%</div><div class="g-lb">sobre línea base</div><div class="g-rng"><span>0%</span><span>100%</span></div></div>
+          </div>
+          <div class="kpp">
+            <div class="km"><div class="v">$5.608.874</div><div class="l">Línea Base</div></div>
+            <div class="km bl"><div class="v">$111.026.179</div><div class="l">Facturación Total</div></div>
+          </div>
+        </div>
+        <div class="tc">
+          <div class="th"><h3>Control de Facturación Mensual</h3><span class="ba">454 facturas</span></div>
+          <table><thead><tr><th>Fecha</th><th>Proveedor</th><th>N° Factura</th><th>Descripción</th><th>Monto Neto</th></tr></thead>
+          <tbody>
+            <tr><td>01/06/2026</td><td>ENTEL</td><td>#506876733</td><td>SAM Servicios Administrados Móviles</td><td class="tr">$111.000</td></tr>
+            <tr><td>01/01/2026</td><td>Telefónica</td><td>#707177788</td><td>188 MOVILES Paquete Empresarial</td><td class="tr">$1.116.400</td></tr>
+            <tr><td>01/12/2025</td><td>ENTEL</td><td>#498754321</td><td>SAM Servicios Administrados Móviles</td><td class="tr">$98.500</td></tr>
+            <tr><td>01/10/2025</td><td>Telefónica</td><td>#695430211</td><td>FACTURA UNIFICADA MOVILES</td><td class="tr">$1.887.320</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+
+      <!-- SERVICIOS SMS -->
+      <div class="pg" id="pg-sms">
+        <div class="ph"><h2>Servicios SMS</h2><p>Mensajería masiva corporativa · Bemobi</p></div>
+        <div class="cr">
+          <div class="ck"><div class="ck-top">Ahorro Total</div><div class="ck-v">$112.255.502</div><div class="ck-s">Acumulado gestión EFIKA</div></div>
+          <div class="ck"><div class="ck-top">Inicio Contrato</div><div class="ck-v tl">Noviembre 2022</div><div class="ck-s">Inicio vigencia</div></div>
+          <div class="ck"><div class="ck-top">Término Contrato</div><div class="ck-v tl">Octubre 2025</div><div class="ck-s">Fin vigencia</div></div>
+          <div class="ck"><div class="ck-top">N° Cuota Actual</div><div class="ck-v">36 / 36</div><div class="ck-s">Contrato completado</div></div>
+        </div>
+        <div class="row">
+          <div class="cc" style="flex:3"><h3>Comportamiento Ahorro</h3><div class="sub">Ahorro mensual SMS (millones CLP)</div><div class="cw h170"><canvas id="cSms"></canvas></div></div>
+          <div class="cc" style="flex:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <h3 style="align-self:flex-start;margin-bottom:8px">% Ahorro Mensual</h3>
+            <div class="gw"><canvas id="gSms" width="170" height="95"></canvas><div class="g-pct">16,27%</div><div class="g-lb">sobre línea base</div><div class="g-rng"><span>0%</span><span>100%</span></div></div>
+          </div>
+          <div class="kpp">
+            <div class="km tl"><div class="v">En blanco</div><div class="l">Línea Base</div></div>
+            <div class="km bl"><div class="v">$334.952.933</div><div class="l">Facturación Total</div></div>
+          </div>
+        </div>
+        <div class="tc">
+          <div class="th"><h3>Control de Facturación Mensual</h3><span class="ba">95 facturas</span></div>
+          <table><thead><tr><th>Fecha</th><th>N° Factura</th><th>Descripción</th><th>Cant. Mensajes</th><th>Monto Neto</th></tr></thead>
+          <tbody>
+            <tr><td>01/06/2026</td><td>880</td><td>Tráfico SMS</td><td class="tbl">55.990</td><td class="tr">$951.830</td></tr>
+            <tr><td>01/06/2026</td><td>881</td><td>Tráfico SMS</td><td class="tbl">141.692</td><td class="tr">$2.408.764</td></tr>
+            <tr><td>01/05/2026</td><td>105837</td><td>Tráfico SMS</td><td class="tbl">64.126</td><td class="tr">$1.090.142</td></tr>
+            <tr><td>01/05/2026</td><td>105838</td><td>Tráfico SMS</td><td class="tbl">174.688</td><td class="tr">$2.969.696</td></tr>
+            <tr><td>01/04/2026</td><td>105812</td><td>Tráfico SMS</td><td class="tbl">59.039</td><td class="tr">$1.003.663</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+
+      <!-- TELEFONÍA FIJA -->
+      <div class="pg" id="pg-fj">
+        <div class="ph"><h2>Telefonía Fija</h2><p>Gestión telefonía fija, 600 y 809 · Movistar / GTD</p></div>
+        <div class="cr">
+          <div class="ck"><div class="ck-top">Ahorro Total</div><div class="ck-v">$49.720.126</div><div class="ck-s">Acumulado gestión EFIKA</div></div>
+          <div class="ck"><div class="ck-top">Inicio Contrato</div><div class="ck-v tl">Noviembre 2022</div><div class="ck-s">Inicio vigencia</div></div>
+          <div class="ck"><div class="ck-top">Término Contrato</div><div class="ck-v tl">Octubre 2025</div><div class="ck-s">Fin vigencia</div></div>
+          <div class="ck"><div class="ck-top">N° Cuota Actual</div><div class="ck-v">36 / 36</div><div class="ck-s">Contrato completado</div></div>
+        </div>
+        <div class="row">
+          <div class="cc" style="flex:3"><h3>Comportamiento Ahorro</h3><div class="sub">Ahorro mensual T. Fija (millones CLP)</div><div class="cw h170"><canvas id="cFj"></canvas></div></div>
+          <div class="cc" style="flex:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <h3 style="align-self:flex-start;margin-bottom:8px">% Ahorro Mensual</h3>
+            <div class="gw"><canvas id="gFj" width="170" height="95"></canvas><div class="g-pct">35,83%</div><div class="g-lb">sobre línea base</div><div class="g-rng"><span>0%</span><span>100%</span></div></div>
+          </div>
+          <div class="kpp">
+            <div class="km"><div class="v">$5.530.474</div><div class="l">Línea Base</div></div>
+            <div class="km bl"><div class="v">$45.796.690</div><div class="l">Facturación Total</div></div>
+          </div>
+        </div>
+        <div class="tc">
+          <div class="th"><h3>Control de Facturación Mensual</h3><span class="ba">428 facturas</span></div>
+          <table><thead><tr><th>Fecha</th><th>N° Factura</th><th>Descripción</th><th>Monto Neto</th></tr></thead>
+          <tbody>
+            <tr><td>19/06/2026</td><td>54596795</td><td>Renta Mensual Tradicional 600</td><td class="tr">$190.835</td></tr>
+            <tr><td>19/06/2026</td><td>54699796</td><td>Renta Mensual Tradicional 600</td><td class="tr">$215.026</td></tr>
+            <tr><td>01/06/2026</td><td>54601873</td><td>Línea 000</td><td class="tr">$347.648</td></tr>
+            <tr><td>01/06/2026</td><td>54535080</td><td>Renta Mensual Tradicional 600</td><td class="tr">$177.191</td></tr>
+            <tr><td>19/05/2026</td><td>54375867</td><td>Renta Mensual Tradicional 600</td><td class="tr">$211.843</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+
+      <!-- OTRAS NEGOCIACIONES -->
+      <div class="pg" id="pg-ot">
+        <div class="ph"><h2>Otras Negociaciones</h2><p>TotalPack · Seguridad Medical · Microsoft · Servicios Impresión</p></div>
+        <div class="g3">
+          <div class="kp kt" style="padding:20px 22px"><div class="kp-ic">📦</div><div class="kp-v big">$16.909.163</div><div class="kp-lb" style="font-size:11px;margin-top:7px">Ahorro TotalPack</div></div>
+          <div class="kp kb" style="padding:20px 22px"><div class="kp-ic">🏥</div><div class="kp-v big">$59.988.360</div><div class="kp-lb" style="font-size:11px;margin-top:7px">Ahorro Seguridad Medical</div></div>
+          <div class="kp kg" style="padding:20px 22px"><div class="kp-ic">💻</div><div class="kp-v big">$132.077.360</div><div class="kp-lb" style="font-size:11px;margin-top:7px">Ahorro Total Microsoft</div></div>
+        </div>
+        <div class="g2">
+          <div class="cc"><h3>Facturación TotalPack</h3><div class="sub">Gestor de Fila (CLP)</div><div class="cw h190"><canvas id="cPk"></canvas></div></div>
+          <div class="cc"><h3>Facturación Servicios Impresión</h3><div class="sub">Kyocera DSChile Spa (CLP)</div><div class="cw h190"><canvas id="cIm"></canvas></div></div>
+        </div>
+        <div class="g2">
+          <div class="tc">
+            <div class="th"><h3>TotalPack — Gestor de Fila</h3><span class="ba">Recientes</span></div>
+            <table><thead><tr><th>Fecha</th><th>Descripción</th><th>Período</th><th>N° Factura</th><th>Monto</th></tr></thead>
+            <tbody>
+              <tr><td>18/05/2026</td><td>GESTOR DE FILA</td><td>Abril</td><td>98219</td><td class="tr">$2.850.000</td></tr>
+              <tr><td>21/04/2026</td><td>GESTOR DE FILA</td><td>Marzo</td><td>97493</td><td class="tr">$2.850.000</td></tr>
+              <tr><td>27/03/2026</td><td>GESTOR DE FILA</td><td>Febrero</td><td>96956</td><td class="tr">$2.850.000</td></tr>
+              <tr><td>27/02/2026</td><td>GESTOR DE FILA</td><td>Enero</td><td>96606</td><td class="tr">$2.850.000</td></tr>
+            </tbody></table>
+          </div>
+          <div class="tc">
+            <div class="th"><h3>Impresión — Kyocera</h3><span class="ba">28 facturas</span></div>
+            <table><thead><tr><th>Fecha</th><th>Proveedor</th><th>N° Factura</th><th>Monto Neto</th></tr></thead>
+            <tbody>
+              <tr><td>01/07/2025</td><td>Kyocera DSChile</td><td>61222</td><td class="tr">$4.020.894</td></tr>
+              <tr><td>10/06/2025</td><td>Kyocera DSChile</td><td>60628</td><td class="tr">$4.021.893</td></tr>
+              <tr><td>20/05/2025</td><td>Kyocera DSChile</td><td>60450</td><td class="tr">$4.011.283</td></tr>
+              <tr><td>21/04/2025</td><td>Kyocera DSChile</td><td>58915</td><td class="tr">$3.988.960</td></tr>
+            </tbody></table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+// ── AUTH ───────────────────────────────────────────────────────────────────
+const U={'consalud':'Consalud2026','victor':'Efika2026','ignacio':'Efika2026','efika':'Efika2026','admin':'Efika2026'};
+const D=typeof PORTAL_DATA!=='undefined'?PORTAL_DATA:{kpis:{totalAhorro:1234112357,iniciConsultoria:'Junio 2022',promMensual:41.03,mesesGestion:47,factGestionadas:1700,updatedAt:''},monthly:[]};
+
+// fill login footer date
+document.getElementById('lgUpd').textContent=D.kpis.updatedAt||'';
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+function doLogin(){
+  const u=document.getElementById('lu').value.trim().toLowerCase();
+  const p=document.getElementById('lp').value;
+  const err=document.getElementById('lerr');
+  if(U[u]===p){
+    const ls=document.getElementById('loginScreen');
+    ls.style.transition='opacity .35s';ls.style.opacity='0';
+    setTimeout(()=>{
+      ls.style.display='none';
+      document.getElementById('app').classList.add('on');
+      document.getElementById('hdrUn').textContent=u.charAt(0).toUpperCase()+u.slice(1);
+      document.getElementById('hdrAv').textContent=u.charAt(0).toUpperCase();
+      document.getElementById('hdrUpd').textContent='Datos: '+D.kpis.updatedAt;
+      document.getElementById('sbUpd').textContent='Actualizado: '+D.kpis.updatedAt;
+      fillKpis();initCharts();
+    },350);
+  }else{err.style.display='block';document.getElementById('lp').value='';document.getElementById('lp').focus()}
+}
+function doLogout(){
+  document.getElementById('app').classList.remove('on');
+  const ls=document.getElementById('loginScreen');ls.style.display='flex';ls.style.opacity='1';
+  document.getElementById('lu').value='';document.getElementById('lp').value='';
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────────────────────
+function goPage(id,el){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('ac'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('ac'));
+  document.getElementById('pg-'+id).classList.add('ac');
+  el.classList.add('ac');
+}
+function toggleSB(){document.getElementById('sb').classList.toggle('cl')}
+
+// ── FILL KPIs ──────────────────────────────────────────────────────────────
+function fmt(n){return '$'+n.toLocaleString('es-CL')}
+function fillKpis(){
+  const k=D.kpis;
+  document.getElementById('h-total').textContent=fmt(k.totalAhorro);
+  document.getElementById('h-inicio').textContent=k.iniciConsultoria;
+  document.getElementById('h-meses').textContent=k.mesesGestion;
+  document.getElementById('h-prom').textContent=k.promMensual.toFixed(2).replace('.',',')+' %';
+  document.getElementById('h-ini2').textContent=k.iniciConsultoria.split(' ').map((w,i)=>i===0?w.substring(0,3):w).join(' ');
+  document.getElementById('h-fact').textContent=k.factGestionadas.toLocaleString('es-CL')+'+';
+}
+
+// ── CHART HELPERS ──────────────────────────────────────────────────────────
+const Cs={gold:'rgba(245,194,62,.75)',goldL:'#F5C23E',blue:'rgba(66,165,245,.65)',blueL:'#42A5F5',teal:'rgba(0,197,216,.65)',tealL:'#00C5D8',green:'rgba(16,185,129,.65)',greenL:'#10B981',purple:'rgba(167,139,250,.72)',gr:'rgba(255,255,255,.05)',tx:'rgba(255,255,255,.45)'};
+const baseOpts={responsive:true,maintainAspectRatio:false,
+  plugins:{legend:{labels:{color:Cs.tx,font:{size:10},boxWidth:10,padding:8}}},
+  scales:{x:{ticks:{color:Cs.tx,font:{size:9},maxRotation:55},grid:{color:Cs.gr}},y:{ticks:{color:Cs.tx,font:{size:10},callback:v=>v+'M'},grid:{color:Cs.gr}}}};
+function mergeOpts(...os){return Object.assign({},...os)}
+
+function gauge(id,pct){
+  const c=document.getElementById(id);if(!c)return;
+  new Chart(c,{type:'doughnut',data:{datasets:[{data:[pct,100-pct,100],backgroundColor:[Cs.blueL,'rgba(255,255,255,0.07)','transparent'],borderWidth:0,circumference:180,rotation:270}]},options:{responsive:false,cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}}}});
+}
+
+let initd=false;
+function initCharts(){
+  if(initd)return;initd=true;
+  const M=D.monthly;
+  const lb=M.map(d=>d.m),mv=M.map(d=>d.mv),sms=M.map(d=>d.sms),pv=M.map(d=>d.pv),fi=M.map(d=>d.fi),ms=M.map(d=>d.ms);
+
+  // MAIN stacked
+  new Chart(document.getElementById('cMain'),{type:'bar',data:{labels:lb,datasets:[
+    {label:'S. Privados',data:pv,backgroundColor:'rgba(66,165,245,.72)',stack:'s'},
+    {label:'SMS',data:sms,backgroundColor:'rgba(167,139,250,.72)',stack:'s'},
+    {label:'Microsoft',data:ms,backgroundColor:'rgba(0,197,216,.62)',stack:'s'},
+    {label:'S. Móviles',data:mv,backgroundColor:Cs.gold,stack:'s'},
+    {label:'T. Fija',data:fi,backgroundColor:'rgba(16,185,129,.62)',stack:'s'},
+  ]},options:{...baseOpts,scales:{x:{...baseOpts.scales.x,stacked:true},y:{...baseOpts.scales.y,stacked:true}}}});
+
+  // PRIVADOS savings
+  new Chart(document.getElementById('cPv'),{type:'bar',data:{labels:lb,datasets:[{label:'Ahorro',data:pv,backgroundColor:Cs.gold,borderColor:Cs.goldL,borderWidth:1,borderRadius:2}]},options:{...baseOpts,plugins:{legend:{display:false}}}});
+
+  // PRIVADOS billing
+  const lpv=63.51;
+  new Chart(document.getElementById('cPvB'),{type:'line',data:{labels:lb,datasets:[
+    {label:'Facturación',data:pv.map(v=>Math.max(0,lpv-v)),borderColor:Cs.blueL,backgroundColor:'rgba(66,165,245,.08)',fill:true,tension:.32,pointRadius:0},
+    {label:'Línea Base',data:lb.map(()=>lpv),borderColor:'rgba(245,194,62,.5)',borderDash:[5,5],pointRadius:0,fill:false}
+  ]},options:{...baseOpts,scales:{x:{...baseOpts.scales.x},y:{ticks:{color:Cs.tx,font:{size:10},callback:v=>v.toFixed(0)+'M'},grid:{color:Cs.gr}}}}});
+
+  // MÓVILES savings
+  new Chart(document.getElementById('cMv'),{type:'bar',data:{labels:lb,datasets:[{label:'Ahorro',data:mv,backgroundColor:Cs.gold,borderColor:Cs.goldL,borderWidth:1,borderRadius:2}]},options:{...baseOpts,plugins:{legend:{display:false}}}});
+
+  // SMS savings
+  new Chart(document.getElementById('cSms'),{type:'bar',data:{labels:lb,datasets:[{label:'Ahorro',data:sms,backgroundColor:'rgba(167,139,250,.75)',borderColor:'rgba(167,139,250,1)',borderWidth:1,borderRadius:2}]},options:{...baseOpts,plugins:{legend:{display:false}}}});
+
+  // FIJA savings
+  new Chart(document.getElementById('cFj'),{type:'bar',data:{labels:lb,datasets:[{label:'Ahorro',data:fi,backgroundColor:'rgba(16,185,129,.7)',borderColor:Cs.greenL,borderWidth:1,borderRadius:2}]},options:{...baseOpts,plugins:{legend:{display:false}}}});
+
+  // TOTALPACK
+  const pm=['May 25','Jun 25','Jul 25','Ago 25','Sep 25','Oct 25','Nov 25','Dic 25','Ene 26','Feb 26','Mar 26','Abr 26'];
+  new Chart(document.getElementById('cPk'),{type:'line',data:{labels:pm,datasets:[{label:'TotalPack',data:[2.85,2.85,2.85,2.85,3.20,3.20,3.20,3.20,2.85,2.85,2.85,2.85],borderColor:Cs.tealL,backgroundColor:'rgba(0,197,216,.08)',fill:true,tension:.3,pointBackgroundColor:Cs.tealL,pointRadius:4}]},options:{...baseOpts,plugins:{legend:{display:false}},scales:{x:{ticks:{color:Cs.tx,font:{size:9}},grid:{color:Cs.gr}},y:{ticks:{color:Cs.tx,callback:v=>'$'+v.toFixed(2)+'M'},grid:{color:Cs.gr},min:2.5,max:3.5}}}});
+
+  // IMPRESORAS
+  new Chart(document.getElementById('cIm'),{type:'line',data:{labels:['Dic 24','Ene 25','Feb 25','Mar 25','Abr 25','May 25','Jun 25','Jul 25'],datasets:[{label:'Impresoras',data:[3.95,3.96,3.96,3.96,3.99,4.01,4.02,4.02],borderColor:Cs.goldL,backgroundColor:'rgba(245,194,62,.08)',fill:true,tension:.3,pointBackgroundColor:Cs.goldL,pointRadius:4}]},options:{...baseOpts,plugins:{legend:{display:false}},scales:{x:{ticks:{color:Cs.tx,font:{size:9}},grid:{color:Cs.gr}},y:{ticks:{color:Cs.tx,callback:v=>'$'+v.toFixed(2)+'M'},grid:{color:Cs.gr},min:3.8,max:4.2}}}});
+
+  // GAUGES
+  gauge('gPv',43.97);gauge('gMv',66.22);gauge('gSms',16.27);gauge('gFj',35.83);
+}
+</script>
+</body>
+</html>
