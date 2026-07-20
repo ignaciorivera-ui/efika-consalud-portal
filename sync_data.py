@@ -121,8 +121,36 @@ def download_excel_from_sharepoint():
 
     headers = {"Authorization": f"Bearer {token}"}
 
-    # Obtener el archivo vía path relativo al site
-    url = f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}/drive/root:/{SP_FILE_PATH}:/content"
+    # 1) Resolver site ID
+    print("  🌐 Obteniendo site ID de SharePoint...")
+    r_site = requests.get(f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}", headers=headers, timeout=30)
+    if r_site.status_code != 200:
+        print(f"  ✗ Error obteniendo site: {r_site.status_code} — {r_site.text[:200]}")
+        return None
+    site_id = r_site.json()["id"]
+    print("  ✓ Site ID obtenido")
+
+    # 2) Buscar biblioteca 'Documentos'
+    r_dr = requests.get(f"https://graph.microsoft.com/v1.0/sites/{site_id}/drives", headers=headers, timeout=30)
+    if r_dr.status_code != 200:
+        print(f"  ✗ Error listando bibliotecas: {r_dr.status_code}")
+        return None
+    drive_id = None
+    for d in r_dr.json().get("value", []):
+        if d.get("name") == "Documentos":
+            drive_id = d["id"]
+            break
+    if not drive_id:
+        nombres = [d.get("name") for d in r_dr.json().get("value", [])]
+        print(f"  ✗ No se encontró la biblioteca 'Documentos'. Disponibles: {nombres}")
+        return None
+    print("  ✓ Biblioteca 'Documentos' encontrada")
+
+    # 3) Descargar archivo (ruta relativa a la biblioteca, sin prefijo)
+    rel_path = SP_FILE_PATH
+    if rel_path.startswith("EFIKA - Documentos/"):
+        rel_path = rel_path[len("EFIKA - Documentos/"):]
+    url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/root:/{rel_path}:/content"
     print(f"  📥 Descargando Excel desde SharePoint...")
     r = requests.get(url, headers=headers, timeout=60)
 
@@ -262,11 +290,16 @@ def main():
             tmp_xl = xl_path  # marcar para borrar al final
 
     if xl_path is None:
-        print("  ✗ No hay Excel disponible. Genera el data.js con datos existentes.")
-        write_data_js([], dict(KPI_BASE), output)
-    else:
-        monthly = read_excel(xl_path)
-        write_data_js(monthly, dict(KPI_BASE), output)
+        print("  ✗ No hay Excel disponible. data.js NO se modifica (se conservan los datos actuales).")
+        sys.exit(1)
+
+    monthly = read_excel(xl_path)
+    if not monthly:
+        print("  ✗ El Excel no entregó datos. data.js NO se modifica (se conservan los datos actuales).")
+        if tmp_xl and tmp_xl.exists():
+            tmp_xl.unlink()
+        sys.exit(1)
+    write_data_js(monthly, dict(KPI_BASE), output)
 
     # Limpiar temporal
     if tmp_xl and tmp_xl.exists():
