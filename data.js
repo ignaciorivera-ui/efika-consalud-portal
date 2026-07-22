@@ -1,8 +1,8 @@
-// Auto-generado por sync_data.py — 22/07/2026 14:10
+// Auto-generado por sync_data.py — 22/07/2026 17:25
 // Fuente: SharePoint EFIKA → Control Consolidado Servicios.xlsx
 const PORTAL_DATA = {
   "kpis": {
-    "totalAhorro": 1820640000,
+    "totalAhorro": 2170720000,
     "iniciConsultoria": "Junio 2022",
     "promMensual": 41.03,
     "factGestionadas": 1700,
@@ -43,7 +43,7 @@ const PORTAL_DATA = {
       "medical": 59988360,
       "microsoft": 132077360
     },
-    "updatedAt": "22/07/2026 14:10",
+    "updatedAt": "22/07/2026 17:25",
     "mesesGestion": 50
   },
   "monthly": [
@@ -122,10 +122,10 @@ const PORTAL_DATA = {
       "mv": 4.06,
       "sms": 2.87,
       "pv": 22.84,
-      "med": 0.0,
-      "ms": 0.0,
+      "med": 59.99,
+      "ms": 82.45,
       "fi": 1.67,
-      "total": 31.44
+      "total": 216.63
     },
     {
       "m": "Feb 23",
@@ -243,9 +243,9 @@ const PORTAL_DATA = {
       "sms": 1.34,
       "pv": 27.6,
       "med": 0.0,
-      "ms": 0.0,
+      "ms": 82.45,
       "fi": 1.35,
-      "total": 34.31
+      "total": 116.75
     },
     {
       "m": "Feb 24",
@@ -363,9 +363,9 @@ const PORTAL_DATA = {
       "sms": 2.62,
       "pv": 26.97,
       "med": 0.0,
-      "ms": 0.0,
+      "ms": 82.45,
       "fi": 2.22,
-      "total": 36.95
+      "total": 119.4
     },
     {
       "m": "Feb 25",
